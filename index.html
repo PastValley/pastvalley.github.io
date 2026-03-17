@@ -13,7 +13,7 @@ body {
   font-size: 14px;
 }
 
-/* CONTAINER CENTRAL (estilo site antigo) */
+/* CONTAINER CENTRAL */
 .container {
   width: 800px;
   margin: auto;
@@ -105,6 +105,19 @@ img {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+}
+
+/* NOVO: ITEM DA GALERIA */
+.gallery-item {
+  text-align: center;
+}
+
+/* NOVO: LEGENDA */
+.caption {
+  font-size: 11px;
+  color: #777;
+  margin-top: 4px;
+  font-style: italic;
 }
 
 /* FOOTER */
@@ -229,10 +242,27 @@ img {
     <h2>Gallery</h2>
 
     <div class="grid">
-      <img src="https://via.placeholder.com/400x300">
-      <img src="https://via.placeholder.com/400x300">
-      <img src="https://via.placeholder.com/400x300">
-      <img src="https://via.placeholder.com/400x300">
+
+      <div class="gallery-item">
+        <img src="images/entity_01.png">
+        <p class="caption">A</p>
+      </div>
+
+      <div class="gallery-item">
+        <img src="images/entity_02.png">
+        <p class="caption">A</p>
+      </div>
+
+      <div class="gallery-item">
+        <img src="images/entity_03.png">
+        <p class="caption">A</p>
+      </div>
+
+      <div class="gallery-item">
+        <img src="images/entity_04.png">
+        <p class="caption">A</p>
+      </div>
+
     </div>
 
   </div>
