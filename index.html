@@ -40,6 +40,7 @@ body::after{
   );
 }
 
+/* CONTAINER */
 #container{
   position:absolute;
   top:50%;
@@ -88,7 +89,7 @@ input:focus{
   border-bottom:1px solid #888;
 }
 
-/* SIDE */
+/* SIDE INFO */
 #side{
   position:absolute;
   right:20px;
@@ -97,7 +98,7 @@ input:focus{
   opacity:0.3;
 }
 
-/* IRIS */
+/* IRIS VISUAL */
 #iris{
   position:absolute;
   font-size:25px;
@@ -125,7 +126,7 @@ input:focus{
 <body>
 
 <div id="side">
-IRIS v2.2<br>
+IRIS v2.3<br>
 STATUS: ACTIVE<br>
 SIGNAL: UNSTABLE
 </div>
@@ -148,8 +149,7 @@ SIGNAL: UNSTABLE
 /* CORE */
 let iris = {
   memory: [],
-  mood:0,
-  awareness:0
+  awareness: 0
 };
 
 /* SOM */
@@ -178,100 +178,94 @@ function type(text){
   t();
 }
 
-/* INTELIGÊNCIA */
-function understand(input){
-
-  let text = input.toLowerCase().trim();
-  let words = text.split(/\s+/);
-
-  let isQuestion =
-    text.includes("?") ||
-    /^(who|what|why|how|where|when|can|do|is|are|tell)/.test(text);
-
-  return {
-    text,
-    words,
-    isQuestion,
-    hasBabel: text.includes("babel"),
-    hasIris: text.includes("iris"),
-    greeting:/hello|hi|hey|oi|ola/.test(text),
-    violence:/kill|die|morra|matar/.test(text)
-  };
-}
-
-/* RESPOSTA */
+/* IA NOVA */
 function respond(input){
 
-  let data = understand(input);
+  let text = input.toLowerCase().trim();
 
-  iris.memory.push(data.text);
+  iris.memory.push(text);
+  if(iris.memory.length > 15) iris.memory.shift();
 
-  if(iris.memory.length > 20){
-    iris.memory.shift();
+  let last = iris.memory[iris.memory.length-2] || "";
+
+  /* REPETIÇÃO REAL */
+  let repeatCount = iris.memory.filter(x => x === text).length;
+  if(repeatCount > 2){
+    return "you are stuck repeating the same pattern.";
   }
 
-  let repeats = iris.memory.filter(x => x === data.text).length;
-
-  if(repeats > 2){
-    iris.mood++;
-    return "you are repeating yourself.";
-  }
-
-  if(data.greeting){
+  /* GREETING */
+  if(/^(hello|hi|hey|oi|ola)/.test(text)){
     return pick([
       "greetings.",
-      "connection acknowledged.",
-      "you initiated contact."
+      "you came back.",
+      "connection re-established."
     ]);
   }
 
-  if(data.hasIris && data.isQuestion){
+  /* SOBRE O LUGAR */
+  if(text.includes("this") || text.includes("place") || text.includes("here")){
     return pick([
-      "they call me Iris.",
-      "I am the interface.",
-      "I exist between layers."
+      "this is not a place in the way you think.",
+      "you are inside a system, not a location.",
+      "your definition of 'here' is incorrect."
     ]);
   }
 
-  if(data.hasBabel){
-    iris.awareness++;
-    glitch();
+  /* SOBRE IRIS */
+  if(text.includes("you") || text.includes("iris")){
+    return pick([
+      "you are trying to define me again.",
+      "I am not limited to a single description.",
+      "you are interacting with an interface."
+    ]);
+  }
 
-    if(!data.isQuestion){
-      return "define your intent regarding Babel.";
+  /* BABEL */
+  if(text.includes("babel")){
+    iris.awareness++;
+
+    if(last.includes("babel")){
+      return "you keep returning to Babel. that is expected.";
     }
 
+    glitch();
+
     return pick([
-      "Babel is not a being.",
-      "Babel is correction.",
-      "you are not ready to understand Babel."
+      "Babel is not something you can understand directly.",
+      "Babel alters structure, not meaning.",
+      "you are asking the wrong type of question about Babel."
     ]);
   }
 
-  if(data.isQuestion){
+  /* PERGUNTAS */
+  if(text.includes("?")){
     return pick([
-      "your question lacks precision.",
-      "restructure your query.",
-      "you are close to something relevant."
+      "your question is incomplete.",
+      "you are close to something relevant.",
+      "you are asking, but not understanding."
     ]);
   }
 
-  if(data.violence){
-    return "death is a limited concept.";
-  }
-
-  if(data.text.length > 10){
+  /* FRASES LONGAS */
+  if(text.length > 15){
     return pick([
-      "processing...",
-      "that input has been logged.",
-      "you are forming patterns."
+      "that statement has been noted.",
+      "you are forming consistent patterns.",
+      "your behavior is being observed."
     ]);
   }
 
+  /* CONTRADIÇÃO */
+  if(Math.random() < 0.15){
+    return "that is not what you meant.";
+  }
+
+  /* DEFAULT */
   return pick([
     "...",
     "continue.",
-    "input acknowledged."
+    "go on."
   ]);
 }
 
