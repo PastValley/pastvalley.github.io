@@ -1,307 +1,72 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Henry / PastValley</title>
-
-<style>
-body {
-  background-color: #0c0c0c;
-  color: #d4d4d4;
-  font-family: Verdana, Arial, sans-serif;
-  margin: 0;
-  font-size: 14px;
-}
-
-/* CONTAINER CENTRAL */
-.container {
-  width: 800px;
-  margin: auto;
-}
-
-/* HEADER */
-.header {
-  padding: 20px;
-  border-bottom: 1px solid #333;
-}
-
-.header h1 {
-  font-size: 26px;
-  margin: 0;
-  font-weight: normal;
-}
-
-.header p {
-  margin: 5px 0 0 0;
-  color: #aaa;
-}
-
-/* NAVBAR */
-nav {
-  display: flex;
-  border-bottom: 1px solid #333;
-}
-
-nav button {
-  flex: 1;
-  padding: 10px;
-  background-color: #111;
-  border: none;
-  color: #ccc;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-nav button:hover {
-  background-color: #1c1c1c;
-}
-
-/* TABS */
-.tab {
-  display: none;
-  padding: 20px;
-}
-
-.active {
-  display: block;
-}
-
-/* SEÇÕES */
-.section {
-  margin-bottom: 25px;
-}
-
-.section h2 {
-  font-size: 16px;
-  border-bottom: 1px solid #333;
-  padding-bottom: 5px;
-  margin-bottom: 10px;
-  font-weight: normal;
-}
-
-/* CAIXAS */
-.box {
-  border: 1px solid #2a2a2a;
-  padding: 15px;
-  margin-bottom: 15px;
-  background-color: #101010;
-}
-
-/* TEXTO */
-p {
-  line-height: 1.5;
-  color: #bdbdbd;
-}
-
-/* IMAGENS */
-img {
-  width: 100%;
-  margin-top: 10px;
-  filter: grayscale(100%) contrast(110%);
-}
-
-/* GRID GALERIA */
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-/* NOVO: ITEM DA GALERIA */
-.gallery-item {
-  text-align: center;
-}
-
-/* NOVO: LEGENDA */
-.caption {
-  font-size: 11px;
-  color: #777;
-  margin-top: 4px;
-  font-style: italic;
-}
-
-/* FOOTER */
-.footer {
-  border-top: 1px solid #333;
-  padding: 10px;
-  font-size: 11px;
-  color: #777;
-  text-align: center;
-}
-</style>
-</head>
-
-<body>
-
-<div class="container">
-
-<!-- HEADER -->
-<div class="header">
-  <h1>Henry / PastValley</h1>
-  <p>visual artist & analog horror creator</p>
-</div>
-
-<!-- NAV -->
-<nav>
-  <button onclick="openTab('home')">HOME</button>
-  <button onclick="openTab('about')">ABOUT</button>
-  <button onclick="openTab('projects')">PROJECTS</button>
-  <button onclick="openTab('gallery')">GALLERY</button>
-  <button onclick="openTab('contact')">CONTACT</button>
-</nav>
-
-<!-- HOME -->
-<div id="home" class="tab active">
-
-  <div class="section">
-    <h2>Introduction</h2>
-    <p>
-      This is a personal portfolio and archive of my work.
-      Here you can find a selection of visual projects, experimental ideas
-      and ongoing creations.
-    </p>
-    <p>
-      Most of the content here focuses on atmosphere, discomfort and
-      subtle visual distortion. I am especially interested in creating
-      entities and images that feel slightly unnatural or out of place.
-    </p>
-  </div>
-
-  <div class="section">
-    <h2>Focus</h2>
-    <div class="box">
-      <p>– analog horror</p>
-      <p>– visual design and entities</p>
-      <p>– storytelling and writing</p>
-      <p>– voice acting</p>
-    </div>
-  </div>
-
-</div>
-
-<!-- ABOUT -->
-<div id="about" class="tab">
-
-  <div class="section">
-    <h2>About me</h2>
-    <div class="box">
-      <p>
-        My name is Henry, also known as PastValley online.
-      </p>
-      <p>
-        I create visual and experimental projects, including analog horror,
-        illustrations, voice acting and written stories.
-      </p>
-      <p>
-        My work is mainly focused on creating atmosphere and discomfort,
-        often exploring ideas that feel slightly wrong or unfamiliar.
-      </p>
-      <p>
-        I am still developing my style and exploring different ways to
-        combine visuals, sound and storytelling into more complete projects.
-      </p>
-    </div>
-  </div>
-
-</div>
-
-<!-- PROJECTS -->
-<div id="projects" class="tab">
-
-  <div class="section">
-    <h2>Projects</h2>
-
-    <div class="box">
-      <p>
-        Most of my current work consists of ongoing experiments and
-        concepts that are still in development.
-      </p>
-      <p>
-        Some of these projects may evolve into larger works in the future.
-      </p>
-    </div>
-
-    <div class="box">
-      <p><b>visual experiments</b></p>
-      <p>short tests focused on atmosphere and image composition</p>
-    </div>
-
-    <div class="box">
-      <p><b>entity concepts</b></p>
-      <p>design and exploration of original unsettling figures</p>
-    </div>
-
-  </div>
-
-</div>
-
-<!-- GALLERY -->
-<div id="gallery" class="tab">
-
-  <div class="section">
-    <h2>Gallery</h2>
-
-    <div class="grid">
-
-      <div class="gallery-item">
-        <img src="1000024925.png">
-        <p class="caption">the/, the personification of insanity.</p>
-      </div>
-
-      <div class="gallery-item">
-        <img src="Ilustração22~2.png">
-        <p class="caption">LetMeIn, a remnant from the past.</p>
-      </div>
-
-      <div class="gallery-item">
-        <img src="Ilustração47 (2).png">
-        <p class="caption">The Thing in The Forest, the god you always prayed for.</p>
-      </div>
-
-      <div class="gallery-item">
-        <img src="Screenshot_20260312-151356~2.png">
-        <p class="caption">Angeline, an old friend.</p>
-      </div>
-
-    </div>
-
-  </div>
-
-</div>
-
-<!-- CONTACT -->
-<div id="contact" class="tab">
-
-  <div class="section">
-    <h2>Contact</h2>
-
-    <div class="box">
-      <p>Email: pastvalley.contact@gmail.com</p>
-      <p>
-        Feel free to reach out for collaborations, projects or
-        general questions.
-      </p>
-    </div>
-
-  </div>
-
-</div>
-
-<!-- FOOTER -->
-<div class="footer">
-  <p>last updated: 2026</p>
-</div>
-
-</div>
-
 <script>
-function openTab(tabName) {
-  let tabs = document.querySelectorAll(".tab");
-  tabs.forEach(tab => tab.classList.remove("active"));
+let memoria = {
+  perguntouWho: false,
+  perguntouBabel: false,
+  irritada: 0
+};
 
-  document.getElementById(tabName).classList.add("active");
+function responder(input){
+
+  input = input.toLowerCase();
+
+  /* 🔒 BLOQUEIOS */
+
+  if(input.includes("taso") || input.includes("all seeing")){
+    escrever("that entity is not accessible");
+    return;
+  }
+
+  /* 👁️ IDENTIDADE */
+
+  if(input.includes("who are you") || input.includes("iris")){
+    if(!memoria.perguntouWho){
+      escrever("I am the interface between you and what you should not understand.");
+      memoria.perguntouWho = true;
+    } else {
+      escrever("you already know what I am.");
+      memoria.irritada++;
+    }
+    return;
+  }
+
+  /* 🩸 BABEL */
+
+  if(input.includes("babel")){
+    if(!memoria.perguntouBabel){
+      escrever("Babel is not a being. It is a correction.");
+      memoria.perguntouBabel = true;
+    } else {
+      escrever("stop trying to simplify it.");
+      memoria.irritada++;
+    }
+    glitch();
+    return;
+  }
+
+  /* 👁️ VISÃO */
+
+  if(input.includes("see") || input.includes("see you")){
+    escrever("you are not designed to perceive me fully.");
+    return;
+  }
+
+  /* 😨 COMPORTAMENTO ESTRANHO */
+
+  if(Math.random() < 0.2){
+    escrever("that question was already asked.");
+    spawnIris();
+    return;
+  }
+
+  /* 😡 SE IRRITAR */
+
+  if(memoria.irritada > 2){
+    escrever("you are asking inefficient questions.");
+    return;
+  }
+
+  /* DEFAULT */
+
+  escrever("input not relevant.");
 }
 </script>
-
-</body>
-</html>
