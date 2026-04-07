@@ -1,211 +1,87 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>IRIS</title>
-
-<style>
-body{
-  background:black;
-  color:#dcdcdc;
-  font-family:monospace;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-  flex-direction:column;
-  margin:0;
-}
-
-#output{
-  width:80%;
-  max-width:700px;
-  min-height:150px;
-  margin-bottom:20px;
-}
-
-input{
-  width:320px;
-  background:none;
-  border:none;
-  border-bottom:1px solid #555;
-  color:white;
-  text-align:center;
-  font-size:16px;
-  outline:none;
-}
-</style>
-</head>
-
-<body>
-
-<div id="output">...</div>
-<input id="input" placeholder="type">
-
 <script>
 
-/* 🧠 CORE */
+function getIntent(text){
 
-let iris = {
-  memory: [],
-  topics: {},
-  mood: 0,
-  awareness: 0,
-  restrictions: ["taso","all seeing","true form"],
-  flags: {
-    identity:false,
-    babel:false,
-    vision:false
-  }
-};
+  text = text.toLowerCase();
 
-/* 🔍 PROCESSAMENTO */
+  if(/hello|hi|hey|oi|ola/.test(text)) return "greeting";
+  if(/bye|goodbye|tchau/.test(text)) return "bye";
+  if(/kill|die|morra|matar/.test(text)) return "violence";
+  if(/who|what are you|iris/.test(text)) return "identity";
+  if(/babel/.test(text)) return "babel";
+  if(/see|look|visible/.test(text)) return "vision";
+  if(/why/.test(text)) return "why";
 
-function tokenize(text){
-  return text.toLowerCase().split(/[\s,.!?]+/);
+  return "unknown";
 }
 
-function detectTopics(words){
-  let topics = [];
+function smartResponse(intent, input){
 
-  if(words.includes("who") || words.includes("iris")) topics.push("identity");
-  if(words.includes("babel")) topics.push("babel");
-  if(words.includes("see") || words.includes("look")) topics.push("vision");
-  if(words.includes("why")) topics.push("why");
+  switch(intent){
 
-  return topics;
+    case "greeting":
+      return pick([
+        "greetings.",
+        "you initiated contact.",
+        "hello... if that term still applies."
+      ]);
+
+    case "bye":
+      return pick([
+        "you will return.",
+        "this interaction is not finished.",
+        "departure is temporary."
+      ]);
+
+    case "violence":
+      return pick([
+        "death is a concept created by limited perception.",
+        "you misunderstand what it means to end something.",
+        "violence is inefficient."
+      ]);
+
+    case "identity":
+      return pick([
+        "I am not something you can define correctly.",
+        "I am the interface you were not meant to reach.",
+        "they call me Iris."
+      ]);
+
+    case "babel":
+      return pick([
+        "do not reduce Babel to a word.",
+        "Babel is correction.",
+        "you are not ready to understand Babel."
+      ]);
+
+    case "vision":
+      return pick([
+        "you cannot fully perceive me.",
+        "you are already being observed.",
+        "visibility is not required."
+      ]);
+
+    case "why":
+      return pick([
+        "your need for reason is a limitation.",
+        "cause and effect do not apply here.",
+        "you ask why because you cannot accept what is."
+      ]);
+
+    default:
+      return pick([
+        "your input lacks structure.",
+        "rephrase your thought.",
+        "you are not asking the correct question.",
+        "this does not align with any known pattern."
+      ]);
+  }
 }
 
-/* 🧠 APRENDIZADO SIMPLES */
+/* util */
 
-function learn(words){
-  words.forEach(w=>{
-    iris.topics[w] = (iris.topics[w]||0)+1;
-  });
+function pick(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
 }
-
-/* 🚫 RESTRIÇÕES */
-
-function isRestricted(text){
-  return iris.restrictions.some(r=>text.includes(r));
-}
-
-/* 🧠 GERAÇÃO DE RESPOSTA */
-
-function generate(input){
-
-  let words = tokenize(input);
-  let topics = detectTopics(words);
-
-  iris.memory.push(input);
-  learn(words);
-
-  /* RESTRIÇÃO */
-  if(isRestricted(input)){
-    iris.mood++;
-    return "that information is not available to you.";
-  }
-
-  /* IDENTIDADE */
-  if(topics.includes("identity")){
-    if(!iris.flags.identity){
-      iris.flags.identity = true;
-      return "I am a structure built to observe and translate.";
-    } else {
-      iris.mood++;
-      return "you continue to define me incorrectly.";
-    }
-  }
-
-  /* BABEL */
-  if(topics.includes("babel")){
-    if(!iris.flags.babel){
-      iris.flags.babel = true;
-      iris.awareness++;
-      return "Babel is not an entity. It is a process of correction.";
-    } else {
-      iris.mood++;
-      return "your understanding of Babel is insufficient.";
-    }
-  }
-
-  /* VISÃO */
-  if(topics.includes("vision")){
-    if(!iris.flags.vision){
-      iris.flags.vision = true;
-      return "you are not structured to perceive me.";
-    } else {
-      return "you are already within observation.";
-    }
-  }
-
-  /* WHY */
-  if(topics.includes("why")){
-    return "reason is a human construct. this system does not depend on it.";
-  }
-
-  /* MEMÓRIA */
-  if(iris.memory.length > 5 && Math.random() < 0.3){
-    return "you asked something similar before.";
-  }
-
-  /* CONSCIÊNCIA */
-  if(iris.awareness > 2 && Math.random() < 0.4){
-    return "this interaction is being monitored.";
-  }
-
-  /* HUMOR */
-  if(iris.mood > 5){
-    return "your input is inefficient.";
-  }
-
-  /* DEFAULT */
-  return "input does not align with any known structure.";
-}
-
-/* ✍️ DIGITAÇÃO */
-
-function type(text){
-  let el = document.getElementById("output");
-  el.innerHTML = "";
-
-  let i=0;
-  function t(){
-    if(i<text.length){
-      el.innerHTML += text[i];
-      i++;
-      setTimeout(t,15);
-    }
-  }
-  t();
-}
-
-/* 🎯 INPUT */
-
-document.getElementById("input").addEventListener("keydown", function(e){
-  if(e.key==="Enter"){
-    let input = this.value;
-
-    let response = generate(input);
-    type(response);
-
-    this.value="";
-  }
-});
-
-/* 👁️ EVENTOS AUTOMÁTICOS */
-
-setInterval(()=>{
-  if(Math.random()<0.1){
-    type("you are still here.");
-  }
-},8000);
-
-setTimeout(()=>{
-  type("do not ask about Babel.");
-},5000);
 
 </script>
-
-</body>
-</html>
