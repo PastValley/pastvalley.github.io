@@ -6,271 +6,254 @@
 
 <style>
 body {
-  background: #020202;
-  color: #cfcfcf;
-  font-family: monospace;
   margin: 0;
+  background: black;
+  color: #dcdcdc;
+  font-family: monospace;
+  overflow: hidden;
+}
+
+/* SCANLINES */
+body::after {
+  content:"";
+  position:fixed;
+  width:100%;
+  height:100%;
+  background: repeating-linear-gradient(
+    rgba(255,255,255,0.03) 0px,
+    rgba(255,255,255,0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events:none;
+}
+
+/* TRANSIÇÃO */
+.fade {
+  animation: fade 0.3s;
+}
+@keyframes fade {
+  from {opacity:0}
+  to {opacity:1}
 }
 
 #topbar {
   padding: 10px;
-  border-bottom: 1px solid #333;
-  font-size: 14px;
+  border-bottom: 1px solid #222;
 }
 
 #screen {
   padding: 20px;
+  transition: all 0.3s;
 }
 
 button {
-  display: block;
-  width: 300px;
-  background: black;
-  border: 1px solid #444;
-  color: #aaa;
-  padding: 10px;
-  margin: 5px 0;
-  cursor: pointer;
+  display:block;
+  width:300px;
+  margin:6px 0;
+  padding:10px;
+  background:black;
+  border:1px solid #333;
+  color:#aaa;
+  cursor:pointer;
 }
-
 button:hover {
-  border-color: white;
-  color: white;
+  border-color:white;
+  color:white;
 }
 
+/* IRIS ANIMAÇÃO */
 #iris {
-  font-size: 40px;
-  margin-bottom: 20px;
+  font-size:50px;
+  margin-bottom:15px;
+  animation: blink 4s infinite;
 }
 
-.log {
-  border: 1px solid #222;
-  padding: 10px;
-  margin-top: 10px;
-  background: #050505;
+@keyframes blink {
+  0%,90%,100% {opacity:1}
+  95% {opacity:0}
 }
 
+/* GLITCH */
 .glitch {
   animation: glitch 0.2s infinite;
 }
-
 @keyframes glitch {
-  0% { transform: translate(1px,0); }
-  50% { transform: translate(-1px,0); }
-  100% { transform: translate(1px,0); }
+  0%{transform:translate(1px,0)}
+  50%{transform:translate(-1px,0)}
+  100%{transform:translate(1px,0)}
+}
+
+.log {
+  border:1px solid #111;
+  padding:10px;
+  margin-top:10px;
+  background:#050505;
 }
 </style>
-
 </head>
 
 <body>
 
-<div id="topbar">IRIS SYSTEM v1.0</div>
+<div id="topbar">IRIS SYSTEM v1.1</div>
 <div id="screen"></div>
-
-<audio id="bip" src="https://www.soundjay.com/button/beep-07.wav"></audio>
 
 <script>
 let screen = document.getElementById("screen");
-let bip = document.getElementById("bip");
 
-function play() {
-  bip.currentTime = 0;
-  bip.play();
+let ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+function beep(freq=500){
+  let o = ctx.createOscillator();
+  o.type="square";
+  o.frequency.value=freq;
+  o.connect(ctx.destination);
+  o.start();
+  setTimeout(()=>o.stop(),40);
 }
 
-function home() {
-  screen.innerHTML = `
+/* DIGITAÇÃO */
+function type(text, el){
+  el.innerHTML="";
+  let i=0;
+  function t(){
+    if(i<text.length){
+      el.innerHTML+=text[i];
+      beep(400 + Math.random()*200);
+      i++;
+      setTimeout(t,20);
+    }
+  }
+  t();
+}
+
+/* HOME */
+function home(){
+  screen.className="fade";
+  screen.innerHTML=`
   <p>> ACCESS GRANTED</p>
-  <button onclick="interfaceMenu()">[1] INTERFACE</button>
-  <button onclick="logs()">[2] LOGS</button>
-  <button onclick="archive()">[3] ARCHIVE</button>
-  <button onclick="locked()">[4] ???</button>
+
+  <button onclick="interfaceMenu()">INTERFACE</button>
+  <button onclick="logs()">LOGS</button>
+  <button onclick="archive()">ARCHIVE</button>
+  <button onclick="locked()">UNKNOWN</button>
   `;
 }
 
-function interfaceMenu() {
-  play();
-  screen.innerHTML = `
-  <div id="iris">< o ></div>
-  <p id="resposta"></p>
+/* IRIS */
+let estado={who:0,see:0,babel:0};
 
-  <button onclick="iris('who')">Who are you?</button>
-  <button onclick="iris('see')">Why can't I see you?</button>
-  <button onclick="iris('babel')">What is Babel?</button>
+function interfaceMenu(){
+  screen.className="fade";
+  screen.innerHTML=`
+  <div id="iris">< o ></div>
+  <div id="resposta"></div>
+
+  <button onclick="iris('who')">WHO ARE YOU</button>
+  <button onclick="iris('see')">WHY CAN'T I SEE YOU</button>
+  <button onclick="iris('babel')">WHAT IS BABEL</button>
+
   <button onclick="home()">BACK</button>
   `;
 }
 
-let estado = { who:0, see:0, babel:0 };
+function iris(t){
+  let r=document.getElementById("resposta");
 
-function iris(tipo) {
-  play();
-  let r = document.getElementById("resposta");
-
-  if (tipo === "who") {
-    r.innerText = estado.who === 0 ? "They call me Iris." : "You already heard me.";
+  if(t==="who"){
+    type(estado.who==0
+      ? "They named me Iris. I did not choose it."
+      : "Names are given by those who cannot understand function.", r);
     estado.who++;
   }
 
-  if (tipo === "see") {
-    r.innerText = estado.see === 0 ? "yet." : "You are not ready.";
+  if(t==="see"){
+    type(estado.see==0
+      ? "You lack the structure to process me."
+      : "You are already being observed.", r);
     estado.see++;
   }
 
-  if (tipo === "babel") {
-    r.innerText = estado.babel === 0 ? "Do not reduce him to a word." : "He is already here.";
+  if(t==="babel"){
+    type(estado.babel==0
+      ? "Babel is not a being. It is a correction process."
+      : "It restructures what you call belief... and flesh.", r);
     estado.babel++;
+
+    /* glitch visual */
+    document.getElementById("iris").classList.add("glitch");
+    setTimeout(()=>document.getElementById("iris").classList.remove("glitch"),500);
   }
 }
 
-function logs() {
-  play();
-  screen.innerHTML = `
-  <p>> LOG DATABASE</p>
+/* LOGS */
+function logs(){
+  screen.className="fade";
+  screen.innerHTML=`
+  <p>> LOGS</p>
 
   <div class="log">
   LOG_01:<br>
-  "system responded before input"
+  system answered before input was given
   </div>
 
   <div class="log">
   LOG_02:<br>
-  "it changed the question on its own"
+  interface began rewriting questions
   </div>
 
   <div class="log glitch">
   LOG_03:<br>
-  "do not ask about babel"
+  do not ask about babel
   </div>
 
   <button onclick="home()">BACK</button>
   `;
 }
 
-function archive() {
-  play();
-  screen.innerHTML = `
+/* ARCHIVE */
+function archive(){
+  screen.className="fade";
+  screen.innerHTML=`
   <p>> ARCHIVE</p>
 
   <div class="log">
-  file_01.txt<br>
-  "it sees through language"
+  ENTRY_A:<br>
+  subject reported "voice behind the words"
   </div>
 
   <div class="log">
-  file_02.txt<br>
-  "correction is necessary"
+  ENTRY_B:<br>
+  observation: meaning changes after reading
   </div>
 
   <button onclick="home()">BACK</button>
   `;
 }
 
-function locked() {
-  play();
-  screen.innerHTML = `
-  <p>> ACCESS DENIED</p>
-  <p class="glitch">insufficient clearance</p>
+/* LOCKED (gancho TASO) */
+function locked(){
+  screen.className="fade";
+  screen.innerHTML=`
+  <p class="glitch">ACCESS DENIED</p>
+  <p>...but something responded</p>
+
+  <div class="log">
+  "I can see you."
+  </div>
+
   <button onclick="home()">BACK</button>
   `;
 }
 
+/* EVENTO AUTOMÁTICO */
+setTimeout(()=>{
+  if(screen.innerHTML.includes("ACCESS")){
+    screen.innerHTML+="<p class='glitch'>signal detected</p>";
+  }
+},8000);
+
 home();
-</script>
-
-</body>
-</html>  right: 10px;
-  opacity: 0.3;
-  font-size: 12px;
-}
-
-/* scanline effect */
-body::after {
-  content: "";
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(
-    rgba(255,255,255,0.02) 0px,
-    rgba(255,255,255,0.02) 1px,
-    transparent 1px,
-    transparent 3px
-  );
-  pointer-events: none;
-}
-</style>
-</head>
-
-<body>
-
-<div id="container">
-
-<div id="iris">< o ></div>
-
-<div id="resposta"></div>
-
-<div id="perguntas">
-  <button id="q1" onclick="responder('who')">Who are you?</button>
-  <button id="q2" onclick="responder('see')">Why can't I see you?</button>
-  <button id="q3" onclick="responder('babel')">What is Babel?</button>
-</div>
-
-</div>
-
-<div id="version">IRIS v1.0</div>
-
-<script>
-let estado = { who: 0, see: 0, babel: 0 };
-
-function digitar(texto) {
-  let i = 0;
-  let el = document.getElementById("resposta");
-  el.innerHTML = "";
-
-  function escrever() {
-    if (i < texto.length) {
-      el.innerHTML += texto[i];
-      i++;
-      setTimeout(escrever, 20);
-    }
-  }
-  escrever();
-}
-
-function responder(tipo) {
-
-  if (tipo === "who") {
-    if (estado.who === 0) {
-      digitar("They call me Iris.");
-      document.getElementById("q1").innerText = "Why are you still asking?";
-      estado.who++;
-    } else {
-      digitar("You already heard me.");
-    }
-  }
-
-  if (tipo === "see") {
-    if (estado.see === 0) {
-      digitar("yet.");
-      document.getElementById("q2").innerText = "Do you really want to?";
-      estado.see++;
-    } else {
-      digitar("You are not ready.");
-    }
-  }
-
-  if (tipo === "babel") {
-    if (estado.babel === 0) {
-      digitar("Do not reduce him to a word.");
-      document.getElementById("q3").innerText = "Why do you keep asking about him?";
-      estado.babel++;
-    } else {
-      digitar("He is already here.");
-    }
-  }
-
-}
 </script>
 
 </body>
