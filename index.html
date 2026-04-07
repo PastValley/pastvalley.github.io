@@ -2,65 +2,185 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>IRIS</title>
+<title>IRIS SYSTEM</title>
 
 <style>
 body {
-  background: radial-gradient(circle, #050505, #000);
-  color: #d0d0d0;
+  background: #020202;
+  color: #cfcfcf;
   font-family: monospace;
   margin: 0;
-  overflow: hidden;
 }
 
-#container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 500px;
-  text-align: center;
+#topbar {
+  padding: 10px;
+  border-bottom: 1px solid #333;
+  font-size: 14px;
 }
 
-#iris {
-  font-size: 60px;
-  margin-bottom: 20px;
-  animation: pulse 3s infinite;
-}
-
-@keyframes pulse {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 0.6; }
-}
-
-#resposta {
-  min-height: 70px;
-  margin: 20px 0;
-  font-size: 15px;
-  line-height: 1.5;
+#screen {
+  padding: 20px;
 }
 
 button {
-  width: 100%;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.2);
-  color: #ccc;
+  display: block;
+  width: 300px;
+  background: black;
+  border: 1px solid #444;
+  color: #aaa;
   padding: 10px;
   margin: 5px 0;
   cursor: pointer;
-  transition: 0.3s;
 }
 
 button:hover {
-  background: rgba(255,255,255,0.15);
+  border-color: white;
   color: white;
 }
 
-#version {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
+#iris {
+  font-size: 40px;
+  margin-bottom: 20px;
+}
+
+.log {
+  border: 1px solid #222;
+  padding: 10px;
+  margin-top: 10px;
+  background: #050505;
+}
+
+.glitch {
+  animation: glitch 0.2s infinite;
+}
+
+@keyframes glitch {
+  0% { transform: translate(1px,0); }
+  50% { transform: translate(-1px,0); }
+  100% { transform: translate(1px,0); }
+}
+</style>
+
+</head>
+
+<body>
+
+<div id="topbar">IRIS SYSTEM v1.0</div>
+<div id="screen"></div>
+
+<audio id="bip" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+
+<script>
+let screen = document.getElementById("screen");
+let bip = document.getElementById("bip");
+
+function play() {
+  bip.currentTime = 0;
+  bip.play();
+}
+
+function home() {
+  screen.innerHTML = `
+  <p>> ACCESS GRANTED</p>
+  <button onclick="interfaceMenu()">[1] INTERFACE</button>
+  <button onclick="logs()">[2] LOGS</button>
+  <button onclick="archive()">[3] ARCHIVE</button>
+  <button onclick="locked()">[4] ???</button>
+  `;
+}
+
+function interfaceMenu() {
+  play();
+  screen.innerHTML = `
+  <div id="iris">< o ></div>
+  <p id="resposta"></p>
+
+  <button onclick="iris('who')">Who are you?</button>
+  <button onclick="iris('see')">Why can't I see you?</button>
+  <button onclick="iris('babel')">What is Babel?</button>
+  <button onclick="home()">BACK</button>
+  `;
+}
+
+let estado = { who:0, see:0, babel:0 };
+
+function iris(tipo) {
+  play();
+  let r = document.getElementById("resposta");
+
+  if (tipo === "who") {
+    r.innerText = estado.who === 0 ? "They call me Iris." : "You already heard me.";
+    estado.who++;
+  }
+
+  if (tipo === "see") {
+    r.innerText = estado.see === 0 ? "yet." : "You are not ready.";
+    estado.see++;
+  }
+
+  if (tipo === "babel") {
+    r.innerText = estado.babel === 0 ? "Do not reduce him to a word." : "He is already here.";
+    estado.babel++;
+  }
+}
+
+function logs() {
+  play();
+  screen.innerHTML = `
+  <p>> LOG DATABASE</p>
+
+  <div class="log">
+  LOG_01:<br>
+  "system responded before input"
+  </div>
+
+  <div class="log">
+  LOG_02:<br>
+  "it changed the question on its own"
+  </div>
+
+  <div class="log glitch">
+  LOG_03:<br>
+  "do not ask about babel"
+  </div>
+
+  <button onclick="home()">BACK</button>
+  `;
+}
+
+function archive() {
+  play();
+  screen.innerHTML = `
+  <p>> ARCHIVE</p>
+
+  <div class="log">
+  file_01.txt<br>
+  "it sees through language"
+  </div>
+
+  <div class="log">
+  file_02.txt<br>
+  "correction is necessary"
+  </div>
+
+  <button onclick="home()">BACK</button>
+  `;
+}
+
+function locked() {
+  play();
+  screen.innerHTML = `
+  <p>> ACCESS DENIED</p>
+  <p class="glitch">insufficient clearance</p>
+  <button onclick="home()">BACK</button>
+  `;
+}
+
+home();
+</script>
+
+</body>
+</html>  right: 10px;
   opacity: 0.3;
   font-size: 12px;
 }
