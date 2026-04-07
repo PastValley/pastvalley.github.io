@@ -1,113 +1,209 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>IRIS</title>
 
 <style>
-body {
+body{
   background:black;
-  color:white;
+  color:#dcdcdc;
   font-family:monospace;
-  margin:0;
   display:flex;
   justify-content:center;
   align-items:center;
   height:100vh;
   flex-direction:column;
+  margin:0;
 }
 
-#resposta {
+#output{
+  width:80%;
+  max-width:700px;
+  min-height:150px;
   margin-bottom:20px;
-  min-height:40px;
 }
 
-input {
+input{
+  width:320px;
   background:none;
   border:none;
-  border-bottom:1px solid white;
+  border-bottom:1px solid #555;
   color:white;
+  text-align:center;
   font-size:16px;
   outline:none;
-  text-align:center;
 }
 </style>
 </head>
 
 <body>
 
-<div id="resposta">...</div>
-<input id="inp" placeholder="type here">
+<div id="output">...</div>
+<input id="input" placeholder="type">
 
 <script>
 
-let memoria = {
-  perguntouWho: false,
-  perguntouBabel: false,
-  irritada: 0
+/* 🧠 CORE */
+
+let iris = {
+  memory: [],
+  topics: {},
+  mood: 0,
+  awareness: 0,
+  restrictions: ["taso","all seeing","true form"],
+  flags: {
+    identity:false,
+    babel:false,
+    vision:false
+  }
 };
 
-let respostaEl = document.getElementById("resposta");
+/* 🔍 PROCESSAMENTO */
 
-function escrever(texto){
-  respostaEl.innerText = texto;
+function tokenize(text){
+  return text.toLowerCase().split(/[\s,.!?]+/);
 }
 
-function responder(input){
+function detectTopics(words){
+  let topics = [];
 
-  input = input.toLowerCase();
+  if(words.includes("who") || words.includes("iris")) topics.push("identity");
+  if(words.includes("babel")) topics.push("babel");
+  if(words.includes("see") || words.includes("look")) topics.push("vision");
+  if(words.includes("why")) topics.push("why");
 
-  if(input.includes("taso") || input.includes("all seeing")){
-    escrever("that entity is not accessible");
-    return;
-  }
-
-  if(input.includes("who")){
-    if(!memoria.perguntouWho){
-      escrever("I am the interface between you and what you should not understand.");
-      memoria.perguntouWho = true;
-    } else {
-      escrever("you already know what I am.");
-      memoria.irritada++;
-    }
-    return;
-  }
-
-  if(input.includes("babel")){
-    if(!memoria.perguntouBabel){
-      escrever("Babel is not a being. It is a correction.");
-      memoria.perguntouBabel = true;
-    } else {
-      escrever("stop trying to simplify it.");
-      memoria.irritada++;
-    }
-    return;
-  }
-
-  if(input.includes("see")){
-    escrever("you are not designed to perceive me fully.");
-    return;
-  }
-
-  if(Math.random() < 0.2){
-    escrever("that question was already asked.");
-    return;
-  }
-
-  if(memoria.irritada > 2){
-    escrever("you are asking inefficient questions.");
-    return;
-  }
-
-  escrever("input not relevant.");
+  return topics;
 }
 
-document.getElementById("inp").addEventListener("keydown", function(e){
-  if(e.key === "Enter"){
-    responder(this.value);
-    this.value = "";
+/* 🧠 APRENDIZADO SIMPLES */
+
+function learn(words){
+  words.forEach(w=>{
+    iris.topics[w] = (iris.topics[w]||0)+1;
+  });
+}
+
+/* 🚫 RESTRIÇÕES */
+
+function isRestricted(text){
+  return iris.restrictions.some(r=>text.includes(r));
+}
+
+/* 🧠 GERAÇÃO DE RESPOSTA */
+
+function generate(input){
+
+  let words = tokenize(input);
+  let topics = detectTopics(words);
+
+  iris.memory.push(input);
+  learn(words);
+
+  /* RESTRIÇÃO */
+  if(isRestricted(input)){
+    iris.mood++;
+    return "that information is not available to you.";
+  }
+
+  /* IDENTIDADE */
+  if(topics.includes("identity")){
+    if(!iris.flags.identity){
+      iris.flags.identity = true;
+      return "I am a structure built to observe and translate.";
+    } else {
+      iris.mood++;
+      return "you continue to define me incorrectly.";
+    }
+  }
+
+  /* BABEL */
+  if(topics.includes("babel")){
+    if(!iris.flags.babel){
+      iris.flags.babel = true;
+      iris.awareness++;
+      return "Babel is not an entity. It is a process of correction.";
+    } else {
+      iris.mood++;
+      return "your understanding of Babel is insufficient.";
+    }
+  }
+
+  /* VISÃO */
+  if(topics.includes("vision")){
+    if(!iris.flags.vision){
+      iris.flags.vision = true;
+      return "you are not structured to perceive me.";
+    } else {
+      return "you are already within observation.";
+    }
+  }
+
+  /* WHY */
+  if(topics.includes("why")){
+    return "reason is a human construct. this system does not depend on it.";
+  }
+
+  /* MEMÓRIA */
+  if(iris.memory.length > 5 && Math.random() < 0.3){
+    return "you asked something similar before.";
+  }
+
+  /* CONSCIÊNCIA */
+  if(iris.awareness > 2 && Math.random() < 0.4){
+    return "this interaction is being monitored.";
+  }
+
+  /* HUMOR */
+  if(iris.mood > 5){
+    return "your input is inefficient.";
+  }
+
+  /* DEFAULT */
+  return "input does not align with any known structure.";
+}
+
+/* ✍️ DIGITAÇÃO */
+
+function type(text){
+  let el = document.getElementById("output");
+  el.innerHTML = "";
+
+  let i=0;
+  function t(){
+    if(i<text.length){
+      el.innerHTML += text[i];
+      i++;
+      setTimeout(t,15);
+    }
+  }
+  t();
+}
+
+/* 🎯 INPUT */
+
+document.getElementById("input").addEventListener("keydown", function(e){
+  if(e.key==="Enter"){
+    let input = this.value;
+
+    let response = generate(input);
+    type(response);
+
+    this.value="";
   }
 });
+
+/* 👁️ EVENTOS AUTOMÁTICOS */
+
+setInterval(()=>{
+  if(Math.random()<0.1){
+    type("you are still here.");
+  }
+},8000);
+
+setTimeout(()=>{
+  type("do not ask about Babel.");
+},5000);
 
 </script>
 
