@@ -1,24 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>IRIS</title>
+
+<style>
+body {
+  background:black;
+  color:white;
+  font-family:monospace;
+  margin:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  flex-direction:column;
+}
+
+#resposta {
+  margin-bottom:20px;
+  min-height:40px;
+}
+
+input {
+  background:none;
+  border:none;
+  border-bottom:1px solid white;
+  color:white;
+  font-size:16px;
+  outline:none;
+  text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div id="resposta">...</div>
+<input id="inp" placeholder="type here">
+
 <script>
+
 let memoria = {
   perguntouWho: false,
   perguntouBabel: false,
   irritada: 0
 };
 
+let respostaEl = document.getElementById("resposta");
+
+function escrever(texto){
+  respostaEl.innerText = texto;
+}
+
 function responder(input){
 
   input = input.toLowerCase();
-
-  /* 🔒 BLOQUEIOS */
 
   if(input.includes("taso") || input.includes("all seeing")){
     escrever("that entity is not accessible");
     return;
   }
 
-  /* 👁️ IDENTIDADE */
-
-  if(input.includes("who are you") || input.includes("iris")){
+  if(input.includes("who")){
     if(!memoria.perguntouWho){
       escrever("I am the interface between you and what you should not understand.");
       memoria.perguntouWho = true;
@@ -29,8 +73,6 @@ function responder(input){
     return;
   }
 
-  /* 🩸 BABEL */
-
   if(input.includes("babel")){
     if(!memoria.perguntouBabel){
       escrever("Babel is not a being. It is a correction.");
@@ -39,34 +81,35 @@ function responder(input){
       escrever("stop trying to simplify it.");
       memoria.irritada++;
     }
-    glitch();
     return;
   }
 
-  /* 👁️ VISÃO */
-
-  if(input.includes("see") || input.includes("see you")){
+  if(input.includes("see")){
     escrever("you are not designed to perceive me fully.");
     return;
   }
 
-  /* 😨 COMPORTAMENTO ESTRANHO */
-
   if(Math.random() < 0.2){
     escrever("that question was already asked.");
-    spawnIris();
     return;
   }
-
-  /* 😡 SE IRRITAR */
 
   if(memoria.irritada > 2){
     escrever("you are asking inefficient questions.");
     return;
   }
 
-  /* DEFAULT */
-
   escrever("input not relevant.");
 }
+
+document.getElementById("inp").addEventListener("keydown", function(e){
+  if(e.key === "Enter"){
+    responder(this.value);
+    this.value = "";
+  }
+});
+
 </script>
+
+</body>
+</html>
