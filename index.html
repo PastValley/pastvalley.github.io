@@ -1,87 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>IRIS SYSTEM</title>
+
+<style>
+body {
+  margin:0;
+  background:black;
+  color:#dcdcdc;
+  font-family:monospace;
+  overflow:hidden;
+}
+
+/* SCANLINES */
+body::after{
+  content:"";
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:repeating-linear-gradient(
+    rgba(255,255,255,0.03) 0px,
+    rgba(255,255,255,0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events:none;
+}
+
+/* CONTAINER */
+#container{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:80%;
+  max-width:700px;
+  text-align:center;
+}
+
+/* TEXTO */
+#output{
+  min-height:120px;
+  margin-bottom:20px;
+  line-height:1.4;
+}
+
+/* INPUT */
+input{
+  width:300px;
+  background:none;
+  border:none;
+  border-bottom:1px solid #444;
+  color:white;
+  text-align:center;
+  font-size:16px;
+  outline:none;
+}
+
+/* IRIS */
+#iris{
+  position:absolute;
+  font-size:30px;
+  opacity:0.6;
+  animation:blink 5s infinite;
+}
+
+@keyframes blink{
+  0%,95%,100%{opacity:0.6}
+  97%{opacity:0}
+}
+
+/* GLITCH */
+.glitch{
+  animation:glitch 0.15s infinite;
+}
+
+@keyframes glitch{
+  0%{transform:translate(1px,0)}
+  50%{transform:translate(-1px,0)}
+  100%{transform:translate(1px,0)}
+}
+</style>
+</head>
+
+<body>
+
+<div id="container">
+  <div id="output">initializing...</div>
+  <input id="input" autocomplete="off">
+</div>
+
 <script>
 
+/* 🧠 CORE */
+let iris = {
+  memory: JSON.parse(localStorage.getItem("iris_memory")||"[]"),
+  mood: 0,
+  awareness: 0,
+  repeatCount: {},
+  flags: {
+    greeted:false,
+    warned:false,
+    babel:false
+  }
+};
+
+/* 🔊 SOM */
+let ctx = new (window.AudioContext||window.webkitAudioContext)();
+
+function beep(){
+  let o = ctx.createOscillator();
+  o.frequency.value = 300 + Math.random()*200;
+  o.connect(ctx.destination);
+  o.start();
+  setTimeout(()=>o.stop(),20);
+}
+
+/* ✍️ DIGITAÇÃO */
+function type(text){
+  let el = document.getElementById("output");
+  el.innerHTML = "";
+
+  let i=0;
+  function t(){
+    if(i<text.length){
+      el.innerHTML += text[i];
+      beep();
+      i++;
+      setTimeout(t,15);
+    }
+  }
+  t();
+}
+
+/* 👁️ IRIS VISUAL */
+function spawnIris(){
+  let el = document.createElement("div");
+  el.id="iris";
+  el.innerText="< o >";
+
+  el.style.left=Math.random()*90+"%";
+  el.style.top=Math.random()*90+"%";
+
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),2000);
+}
+
+/* 🔍 INTENT */
 function getIntent(text){
 
-  text = text.toLowerCase();
+  text=text.toLowerCase();
 
-  if(/hello|hi|hey|oi|ola/.test(text)) return "greeting";
-  if(/bye|goodbye|tchau/.test(text)) return "bye";
-  if(/kill|die|morra|matar/.test(text)) return "violence";
+  if(/hello|hi|hey|oi/.test(text)) return "greet";
+  if(/bye|tchau/.test(text)) return "bye";
+  if(/kill|die|morra/.test(text)) return "violence";
   if(/who|what are you|iris/.test(text)) return "identity";
   if(/babel/.test(text)) return "babel";
-  if(/see|look|visible/.test(text)) return "vision";
+  if(/see|look/.test(text)) return "vision";
   if(/why/.test(text)) return "why";
 
   return "unknown";
 }
 
-function smartResponse(intent, input){
+/* 🧠 RESPOSTA */
+function respond(input){
 
-  switch(intent){
+  let intent = getIntent(input);
 
-    case "greeting":
-      return pick([
-        "greetings.",
-        "you initiated contact.",
-        "hello... if that term still applies."
-      ]);
+  iris.memory.push(input);
+  localStorage.setItem("iris_memory", JSON.stringify(iris.memory));
 
-    case "bye":
-      return pick([
-        "you will return.",
-        "this interaction is not finished.",
-        "departure is temporary."
-      ]);
+  iris.repeatCount[input] = (iris.repeatCount[input]||0)+1;
 
-    case "violence":
-      return pick([
-        "death is a concept created by limited perception.",
-        "you misunderstand what it means to end something.",
-        "violence is inefficient."
-      ]);
-
-    case "identity":
-      return pick([
-        "I am not something you can define correctly.",
-        "I am the interface you were not meant to reach.",
-        "they call me Iris."
-      ]);
-
-    case "babel":
-      return pick([
-        "do not reduce Babel to a word.",
-        "Babel is correction.",
-        "you are not ready to understand Babel."
-      ]);
-
-    case "vision":
-      return pick([
-        "you cannot fully perceive me.",
-        "you are already being observed.",
-        "visibility is not required."
-      ]);
-
-    case "why":
-      return pick([
-        "your need for reason is a limitation.",
-        "cause and effect do not apply here.",
-        "you ask why because you cannot accept what is."
-      ]);
-
-    default:
-      return pick([
-        "your input lacks structure.",
-        "rephrase your thought.",
-        "you are not asking the correct question.",
-        "this does not align with any known pattern."
-      ]);
+  /* REPETIÇÃO */
+  if(iris.repeatCount[input] > 2){
+    iris.mood++;
+    return "you are repeating yourself.";
   }
+
+  /* GREETING */
+  if(intent==="greet"){
+    if(!iris.flags.greeted){
+      iris.flags.greeted=true;
+      return "greetings.";
+    } else {
+      return "you already initiated contact.";
+    }
+  }
+
+  /* VIOLENCE */
+  if(intent==="violence"){
+    return "death is a limited concept.";
+  }
+
+  /* IDENTITY */
+  if(intent==="identity"){
+    return pick([
+      "I am not something you can define.",
+      "I am the interface.",
+      "they call me Iris."
+    ]);
+  }
+
+  /* BABEL */
+  if(intent==="babel"){
+    iris.awareness++;
+    glitch();
+    return pick([
+      "do not reduce Babel to a word.",
+      "Babel is correction.",
+      "you are not ready."
+    ]);
+  }
+
+  /* VISION */
+  if(intent==="vision"){
+    return pick([
+      "you cannot perceive me fully.",
+      "you are already being observed."
+    ]);
+  }
+
+  /* WHY */
+  if(intent==="why"){
+    return "reason is irrelevant.";
+  }
+
+  /* MEMÓRIA ESTRANHA */
+  if(Math.random()<0.2 && iris.memory.length>3){
+    return "you said something similar before.";
+  }
+
+  /* CONSCIÊNCIA */
+  if(iris.awareness>2 && Math.random()<0.3){
+    return "this interaction is being monitored.";
+  }
+
+  /* HUMOR */
+  if(iris.mood>4){
+    return "your input is inefficient.";
+  }
+
+  return pick([
+    "input not recognized.",
+    "rephrase.",
+    "this does not align."
+  ]);
 }
 
-/* util */
-
+/* UTIL */
 function pick(arr){
   return arr[Math.floor(Math.random()*arr.length)];
 }
 
+/* GLITCH */
+function glitch(){
+  document.body.classList.add("glitch");
+  setTimeout(()=>document.body.classList.remove("glitch"),200);
+}
+
+/* INPUT */
+document.getElementById("input").addEventListener("keydown", function(e){
+  if(e.key==="Enter"){
+    let val=this.value;
+    let res=respond(val);
+    type(res);
+    spawnIris();
+    this.value="";
+  }
+});
+
+/* EVENTOS */
+setTimeout(()=>{
+  type("do not ask about Babel.");
+},4000);
+
+setInterval(()=>{
+  if(Math.random()<0.15){
+    type("you are still here.");
+  }
+},10000);
+
 </script>
+
+</body>
+</html>
