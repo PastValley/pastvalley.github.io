@@ -13,7 +13,7 @@ body{
   overflow:hidden;
 }
 
-/* GRID BACKGROUND */
+/* GRID */
 body::before{
   content:"";
   position:fixed;
@@ -26,7 +26,7 @@ body::before{
   opacity:0.2;
 }
 
-/* SCANLINE */
+/* SCANLINES */
 body::after{
   content:"";
   position:fixed;
@@ -40,7 +40,6 @@ body::after{
   );
 }
 
-/* MAIN */
 #container{
   position:absolute;
   top:50%;
@@ -48,13 +47,13 @@ body::after{
   transform:translate(-50%,-50%);
   width:80%;
   max-width:900px;
+  z-index:10;
 }
 
 /* HEADER */
 #header{
   border-bottom:1px solid #333;
   padding-bottom:10px;
-  margin-bottom:10px;
   display:flex;
   justify-content:space-between;
 }
@@ -68,7 +67,6 @@ body::after{
   min-height:120px;
   margin:20px 0;
   line-height:1.5;
-  transition:0.3s;
 }
 
 /* INPUT */
@@ -86,7 +84,11 @@ input{
   padding:10px;
 }
 
-/* SIDE INFO */
+input:focus{
+  border-bottom:1px solid #888;
+}
+
+/* SIDE */
 #side{
   position:absolute;
   right:20px;
@@ -123,7 +125,7 @@ input{
 <body>
 
 <div id="side">
-IRIS v2.1<br>
+IRIS v2.2<br>
 STATUS: ACTIVE<br>
 SIGNAL: UNSTABLE
 </div>
@@ -137,22 +139,21 @@ SIGNAL: UNSTABLE
 
 <div id="output">establishing connection...</div>
 
-<input id="input" autocomplete="off">
+<input id="input" autocomplete="off" placeholder="type here">
 
 </div>
 
 <script>
 
-/* 🧠 CORE */
+/* CORE */
 let iris = {
   memory: [],
   mood:0,
   awareness:0
 };
 
-/* 🔊 SOM */
+/* SOM */
 let ctx = new (window.AudioContext||window.webkitAudioContext)();
-
 function beep(){
   let o=ctx.createOscillator();
   o.frequency.value=300+Math.random()*200;
@@ -161,11 +162,10 @@ function beep(){
   setTimeout(()=>o.stop(),20);
 }
 
-/* ✍️ DIGITAR */
+/* DIGITAÇÃO */
 function type(text){
   let el=document.getElementById("output");
   el.innerHTML="";
-
   let i=0;
   function t(){
     if(i<text.length){
@@ -178,36 +178,45 @@ function type(text){
   t();
 }
 
-/* 🧠 INTELIGÊNCIA MELHORADA */
+/* INTELIGÊNCIA */
 function understand(input){
 
-  input=input.toLowerCase();
+  let text = input.toLowerCase().trim();
+  let words = text.split(/\s+/);
 
-  let isQuestion = input.includes("?") || 
-                   input.startsWith("who") ||
-                   input.startsWith("what") ||
-                   input.startsWith("why");
-
-  let words=input.split(" ");
+  let isQuestion =
+    text.includes("?") ||
+    /^(who|what|why|how|where|when|can|do|is|are|tell)/.test(text);
 
   return {
-    text:input,
+    text,
+    words,
     isQuestion,
-    hasBabel:words.includes("babel"),
-    hasIris:words.includes("iris"),
-    greeting:/hello|hi|hey/.test(input),
-    violence:/kill|die|morra/.test(input)
+    hasBabel: text.includes("babel"),
+    hasIris: text.includes("iris"),
+    greeting:/hello|hi|hey|oi|ola/.test(text),
+    violence:/kill|die|morra|matar/.test(text)
   };
 }
 
-/* 🧠 RESPOSTA */
+/* RESPOSTA */
 function respond(input){
 
-  let data=understand(input);
+  let data = understand(input);
 
-  iris.memory.push(input);
+  iris.memory.push(data.text);
 
-  /* GREETING */
+  if(iris.memory.length > 20){
+    iris.memory.shift();
+  }
+
+  let repeats = iris.memory.filter(x => x === data.text).length;
+
+  if(repeats > 2){
+    iris.mood++;
+    return "you are repeating yourself.";
+  }
+
   if(data.greeting){
     return pick([
       "greetings.",
@@ -216,50 +225,53 @@ function respond(input){
     ]);
   }
 
-  /* NÃO RESPONDE COISA SOLTA */
-  if(!data.isQuestion && input.length < 6){
-    return "input incomplete.";
-  }
-
-  /* IDENTIDADE */
-  if(data.isQuestion && data.hasIris){
+  if(data.hasIris && data.isQuestion){
     return pick([
-      "I am not something you can define.",
       "they call me Iris.",
-      "I am the interface."
+      "I am the interface.",
+      "I exist between layers."
     ]);
   }
 
-  /* BABEL */
-  if(data.hasBabel && data.isQuestion){
-    glitch();
+  if(data.hasBabel){
     iris.awareness++;
+    glitch();
+
+    if(!data.isQuestion){
+      return "define your intent regarding Babel.";
+    }
+
     return pick([
-      "do not reduce Babel to language.",
+      "Babel is not a being.",
       "Babel is correction.",
-      "you are not ready."
+      "you are not ready to understand Babel."
     ]);
   }
 
-  /* VIOLÊNCIA */
+  if(data.isQuestion){
+    return pick([
+      "your question lacks precision.",
+      "restructure your query.",
+      "you are close to something relevant."
+    ]);
+  }
+
   if(data.violence){
     return "death is a limited concept.";
   }
 
-  /* MEMÓRIA */
-  if(iris.memory.length > 5 && Math.random()<0.3){
-    return "you are repeating patterns.";
-  }
-
-  /* CONSCIÊNCIA */
-  if(iris.awareness > 2 && Math.random()<0.3){
-    return "this interaction is being observed.";
+  if(data.text.length > 10){
+    return pick([
+      "processing...",
+      "that input has been logged.",
+      "you are forming patterns."
+    ]);
   }
 
   return pick([
-    "rephrase your question.",
-    "input lacks structure.",
-    "this does not align."
+    "...",
+    "continue.",
+    "input acknowledged."
   ]);
 }
 
