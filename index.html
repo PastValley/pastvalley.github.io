@@ -1,19 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>IRIS SYSTEM</title>
 
 <style>
-body {
+body{
   margin:0;
-  background:black;
+  background:#020202;
   color:#dcdcdc;
   font-family:monospace;
   overflow:hidden;
 }
 
-/* SCANLINES */
+/* GRID BACKGROUND */
+body::before{
+  content:"";
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:
+    linear-gradient(#111 1px, transparent 1px),
+    linear-gradient(90deg,#111 1px, transparent 1px);
+  background-size:40px 40px;
+  opacity:0.2;
+}
+
+/* SCANLINE */
 body::after{
   content:"";
   position:fixed;
@@ -25,57 +38,76 @@ body::after{
     transparent 1px,
     transparent 3px
   );
-  pointer-events:none;
 }
 
-/* CONTAINER */
+/* MAIN */
 #container{
   position:absolute;
   top:50%;
   left:50%;
   transform:translate(-50%,-50%);
   width:80%;
-  max-width:700px;
-  text-align:center;
+  max-width:900px;
 }
 
-/* TEXTO */
+/* HEADER */
+#header{
+  border-bottom:1px solid #333;
+  padding-bottom:10px;
+  margin-bottom:10px;
+  display:flex;
+  justify-content:space-between;
+}
+
+#status{
+  opacity:0.5;
+}
+
+/* OUTPUT */
 #output{
   min-height:120px;
-  margin-bottom:20px;
-  line-height:1.4;
+  margin:20px 0;
+  line-height:1.5;
+  transition:0.3s;
 }
 
 /* INPUT */
 input{
-  width:300px;
+  width:100%;
   background:none;
   border:none;
   border-bottom:1px solid #444;
   color:white;
-  text-align:center;
   font-size:16px;
   outline:none;
+}
+
+/* SIDE INFO */
+#side{
+  position:absolute;
+  right:20px;
+  top:20px;
+  font-size:12px;
+  opacity:0.3;
 }
 
 /* IRIS */
 #iris{
   position:absolute;
-  font-size:30px;
-  opacity:0.6;
-  animation:blink 5s infinite;
+  font-size:25px;
+  opacity:0.5;
+  animation:blink 6s infinite;
 }
 
 @keyframes blink{
-  0%,95%,100%{opacity:0.6}
+  0%,95%,100%{opacity:0.5}
   97%{opacity:0}
 }
 
 /* GLITCH */
 .glitch{
-  animation:glitch 0.15s infinite;
+  animation:glitch 0.2s infinite;
 }
-
 @keyframes glitch{
   0%{transform:translate(1px,0)}
   50%{transform:translate(-1px,0)}
@@ -86,46 +118,54 @@ input{
 
 <body>
 
+<div id="side">
+IRIS v2.1<br>
+STATUS: ACTIVE<br>
+SIGNAL: UNSTABLE
+</div>
+
 <div id="container">
-  <div id="output">initializing...</div>
-  <input id="input" autocomplete="off">
+
+<div id="header">
+<div>IRIS SYSTEM</div>
+<div id="status">connected</div>
+</div>
+
+<div id="output">establishing connection...</div>
+
+<input id="input" autocomplete="off">
+
 </div>
 
 <script>
 
 /* 🧠 CORE */
 let iris = {
-  memory: JSON.parse(localStorage.getItem("iris_memory")||"[]"),
-  mood: 0,
-  awareness: 0,
-  repeatCount: {},
-  flags: {
-    greeted:false,
-    warned:false,
-    babel:false
-  }
+  memory: [],
+  mood:0,
+  awareness:0
 };
 
 /* 🔊 SOM */
 let ctx = new (window.AudioContext||window.webkitAudioContext)();
 
 function beep(){
-  let o = ctx.createOscillator();
-  o.frequency.value = 300 + Math.random()*200;
+  let o=ctx.createOscillator();
+  o.frequency.value=300+Math.random()*200;
   o.connect(ctx.destination);
   o.start();
   setTimeout(()=>o.stop(),20);
 }
 
-/* ✍️ DIGITAÇÃO */
+/* ✍️ DIGITAR */
 function type(text){
-  let el = document.getElementById("output");
-  el.innerHTML = "";
+  let el=document.getElementById("output");
+  el.innerHTML="";
 
   let i=0;
   function t(){
     if(i<text.length){
-      el.innerHTML += text[i];
+      el.innerHTML+=text[i];
       beep();
       i++;
       setTimeout(t,15);
@@ -134,117 +174,87 @@ function type(text){
   t();
 }
 
-/* 👁️ IRIS VISUAL */
-function spawnIris(){
-  let el = document.createElement("div");
-  el.id="iris";
-  el.innerText="< o >";
+/* 🧠 INTELIGÊNCIA MELHORADA */
+function understand(input){
 
-  el.style.left=Math.random()*90+"%";
-  el.style.top=Math.random()*90+"%";
+  input=input.toLowerCase();
 
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(),2000);
-}
+  let isQuestion = input.includes("?") || 
+                   input.startsWith("who") ||
+                   input.startsWith("what") ||
+                   input.startsWith("why");
 
-/* 🔍 INTENT */
-function getIntent(text){
+  let words=input.split(" ");
 
-  text=text.toLowerCase();
-
-  if(/hello|hi|hey|oi/.test(text)) return "greet";
-  if(/bye|tchau/.test(text)) return "bye";
-  if(/kill|die|morra/.test(text)) return "violence";
-  if(/who|what are you|iris/.test(text)) return "identity";
-  if(/babel/.test(text)) return "babel";
-  if(/see|look/.test(text)) return "vision";
-  if(/why/.test(text)) return "why";
-
-  return "unknown";
+  return {
+    text:input,
+    isQuestion,
+    hasBabel:words.includes("babel"),
+    hasIris:words.includes("iris"),
+    greeting:/hello|hi|hey/.test(input),
+    violence:/kill|die|morra/.test(input)
+  };
 }
 
 /* 🧠 RESPOSTA */
 function respond(input){
 
-  let intent = getIntent(input);
+  let data=understand(input);
 
   iris.memory.push(input);
-  localStorage.setItem("iris_memory", JSON.stringify(iris.memory));
-
-  iris.repeatCount[input] = (iris.repeatCount[input]||0)+1;
-
-  /* REPETIÇÃO */
-  if(iris.repeatCount[input] > 2){
-    iris.mood++;
-    return "you are repeating yourself.";
-  }
 
   /* GREETING */
-  if(intent==="greet"){
-    if(!iris.flags.greeted){
-      iris.flags.greeted=true;
-      return "greetings.";
-    } else {
-      return "you already initiated contact.";
-    }
+  if(data.greeting){
+    return pick([
+      "greetings.",
+      "connection acknowledged.",
+      "you initiated contact."
+    ]);
   }
 
-  /* VIOLENCE */
-  if(intent==="violence"){
-    return "death is a limited concept.";
+  /* NÃO RESPONDE COISA SOLTA */
+  if(!data.isQuestion && input.length < 6){
+    return "input incomplete.";
   }
 
-  /* IDENTITY */
-  if(intent==="identity"){
+  /* IDENTIDADE */
+  if(data.isQuestion && data.hasIris){
     return pick([
       "I am not something you can define.",
-      "I am the interface.",
-      "they call me Iris."
+      "they call me Iris.",
+      "I am the interface."
     ]);
   }
 
   /* BABEL */
-  if(intent==="babel"){
-    iris.awareness++;
+  if(data.hasBabel && data.isQuestion){
     glitch();
+    iris.awareness++;
     return pick([
-      "do not reduce Babel to a word.",
+      "do not reduce Babel to language.",
       "Babel is correction.",
       "you are not ready."
     ]);
   }
 
-  /* VISION */
-  if(intent==="vision"){
-    return pick([
-      "you cannot perceive me fully.",
-      "you are already being observed."
-    ]);
+  /* VIOLÊNCIA */
+  if(data.violence){
+    return "death is a limited concept.";
   }
 
-  /* WHY */
-  if(intent==="why"){
-    return "reason is irrelevant.";
-  }
-
-  /* MEMÓRIA ESTRANHA */
-  if(Math.random()<0.2 && iris.memory.length>3){
-    return "you said something similar before.";
+  /* MEMÓRIA */
+  if(iris.memory.length > 5 && Math.random()<0.3){
+    return "you are repeating patterns.";
   }
 
   /* CONSCIÊNCIA */
-  if(iris.awareness>2 && Math.random()<0.3){
-    return "this interaction is being monitored.";
-  }
-
-  /* HUMOR */
-  if(iris.mood>4){
-    return "your input is inefficient.";
+  if(iris.awareness > 2 && Math.random()<0.3){
+    return "this interaction is being observed.";
   }
 
   return pick([
-    "input not recognized.",
-    "rephrase.",
+    "rephrase your question.",
+    "input lacks structure.",
     "this does not align."
   ]);
 }
@@ -260,8 +270,19 @@ function glitch(){
   setTimeout(()=>document.body.classList.remove("glitch"),200);
 }
 
+/* IRIS VISUAL */
+function spawnIris(){
+  let el=document.createElement("div");
+  el.id="iris";
+  el.innerText="< o >";
+  el.style.left=Math.random()*90+"%";
+  el.style.top=Math.random()*90+"%";
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),2000);
+}
+
 /* INPUT */
-document.getElementById("input").addEventListener("keydown", function(e){
+document.getElementById("input").addEventListener("keydown",function(e){
   if(e.key==="Enter"){
     let val=this.value;
     let res=respond(val);
@@ -277,8 +298,9 @@ setTimeout(()=>{
 },4000);
 
 setInterval(()=>{
-  if(Math.random()<0.15){
-    type("you are still here.");
+  if(Math.random()<0.2){
+    type("signal fluctuation detected.");
+    document.getElementById("status").innerText="unstable";
   }
 },10000);
 
