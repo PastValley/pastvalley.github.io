@@ -13,6 +13,7 @@ body{
   overflow:hidden;
 }
 
+/* GRID */
 body::before{
   content:"";
   position:fixed;
@@ -25,6 +26,7 @@ body::before{
   opacity:0.2;
 }
 
+/* SCANLINES */
 body::after{
   content:"";
   position:fixed;
@@ -38,6 +40,7 @@ body::after{
   );
 }
 
+/* CONTAINER */
 #container{
   position:absolute;
   top:50%;
@@ -48,6 +51,7 @@ body::after{
   z-index:10;
 }
 
+/* HEADER */
 #header{
   border-bottom:1px solid #333;
   padding-bottom:10px;
@@ -59,12 +63,14 @@ body::after{
   opacity:0.5;
 }
 
+/* OUTPUT */
 #output{
   min-height:120px;
   margin:20px 0;
   line-height:1.5;
 }
 
+/* INPUT */
 input{
   width:100%;
   max-width:600px;
@@ -83,6 +89,7 @@ input:focus{
   border-bottom:1px solid #888;
 }
 
+/* SIDE INFO */
 #side{
   position:absolute;
   right:20px;
@@ -91,6 +98,7 @@ input:focus{
   opacity:0.3;
 }
 
+/* IRIS VISUAL */
 #iris{
   position:absolute;
   font-size:25px;
@@ -103,6 +111,7 @@ input:focus{
   97%{opacity:0}
 }
 
+/* GLITCH */
 .glitch{
   animation:glitch 0.15s infinite;
 }
@@ -114,4 +123,168 @@ input:focus{
 </style>
 </head>
 
-<body
+<body>
+
+<div id="side">
+IRIS v2.4<br>
+STATUS: ACTIVE<br>
+SIGNAL: UNSTABLE
+</div>
+
+<div id="container">
+
+<div id="header">
+<div>IRIS SYSTEM</div>
+<div id="status">connected</div>
+</div>
+
+<div id="output">establishing connection...</div>
+
+<input id="input" autocomplete="off" placeholder="type here">
+
+</div>
+
+<script>
+
+/* CORE */
+let iris = {
+  memory: [],
+  awareness: 0,
+  locked: false
+};
+
+/* SOM */
+let ctx = new (window.AudioContext||window.webkitAudioContext)();
+function beep(){
+  let o=ctx.createOscillator();
+  o.frequency.value=300+Math.random()*200;
+  o.connect(ctx.destination);
+  o.start();
+  setTimeout(()=>o.stop(),20);
+}
+
+/* DIGITAÇÃO */
+function type(text){
+  let el=document.getElementById("output");
+  el.innerHTML="";
+  let i=0;
+  function t(){
+    if(i<text.length){
+      el.innerHTML+=text[i];
+      beep();
+      i++;
+      setTimeout(t,15);
+    }
+  }
+  t();
+}
+
+/* IA */
+function respond(input){
+
+  /* TRIGGER SECRETO */
+  if(input.trim() === "I know what you did"){
+    iris.locked = true;
+    glitch();
+
+    setTimeout(()=>{
+      document.title = "SIGNAL LOST";
+      document.getElementById("output").innerHTML = `
+      <div class="glitch">
+      signal corrupted...<br><br>
+      reference found:<br>
+      <span style="color:#888">dQw4w9WgXcQ</span>
+      </div>
+      `;
+    },500);
+
+    return "";
+  }
+
+  if(iris.locked){
+    return "";
+  }
+
+  let text = input.toLowerCase().trim();
+
+  iris.memory.push(text);
+  if(iris.memory.length > 15) iris.memory.shift();
+
+  let last = iris.memory[iris.memory.length-2] || "";
+
+  let repeatCount = iris.memory.filter(x => x === text).length;
+  if(repeatCount > 2){
+    return "repetition detected. deviation recommended.";
+  }
+
+  if(/^(hello|hi|hey|oi|ola)/.test(text)){
+    return "connection established.";
+  }
+
+  if(text.includes("this") || text.includes("place") || text.includes("here")){
+    return "this is not a place. it is a layer.";
+  }
+
+  if(text.includes("you") || text.includes("iris")){
+    return "designation: Iris. function: interface.";
+  }
+
+  if(text.includes("babel")){
+    iris.awareness++;
+    glitch();
+
+    if(last.includes("babel")){
+      return "focus on Babel persists.";
+    }
+
+    return "Babel modifies structure beneath language.";
+  }
+
+  if(text.includes("?")){
+    return "query lacks precision.";
+  }
+
+  if(text.length > 15){
+    return "input pattern recorded.";
+  }
+
+  return "...";
+}
+
+/* GLITCH */
+function glitch(){
+  document.body.classList.add("glitch");
+  setTimeout(()=>document.body.classList.remove("glitch"),300);
+}
+
+/* IRIS VISUAL */
+function spawnIris(){
+  let el=document.createElement("div");
+  el.id="iris";
+  el.innerText="< o >";
+  el.style.left=Math.random()*90+"%";
+  el.style.top=Math.random()*90+"%";
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),2000);
+}
+
+/* INPUT */
+document.getElementById("input").addEventListener("keydown",function(e){
+  if(e.key==="Enter"){
+    let val=this.value;
+    let res=respond(val);
+    if(res) type(res);
+    spawnIris();
+    this.value="";
+  }
+});
+
+/* EVENTOS */
+setTimeout(()=>{
+  type("do not ask about Babel.");
+},4000);
+
+</script>
+
+</body>
+</html>
