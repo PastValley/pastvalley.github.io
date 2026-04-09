@@ -1,289 +1,117 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>IRIS SYSTEM</title>
-
-<style>
-body{
-  margin:0;
-  background:#020202;
-  color:#dcdcdc;
-  font-family:monospace;
-  overflow:hidden;
-}
-
-/* GRID */
-body::before{
-  content:"";
-  position:fixed;
-  width:100%;
-  height:100%;
-  background:
-    linear-gradient(#111 1px, transparent 1px),
-    linear-gradient(90deg,#111 1px, transparent 1px);
-  background-size:40px 40px;
-  opacity:0.2;
-}
-
-/* SCANLINES */
-body::after{
-  content:"";
-  position:fixed;
-  width:100%;
-  height:100%;
-  background:repeating-linear-gradient(
-    rgba(255,255,255,0.03) 0px,
-    rgba(255,255,255,0.03) 1px,
-    transparent 1px,
-    transparent 3px
-  );
-}
-
-/* CONTAINER */
-#container{
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  width:80%;
-  max-width:900px;
-  z-index:10;
-}
-
-/* HEADER */
-#header{
-  border-bottom:1px solid #333;
-  padding-bottom:10px;
-  display:flex;
-  justify-content:space-between;
-}
-
-#status{
-  opacity:0.5;
-}
-
-/* OUTPUT */
-#output{
-  min-height:120px;
-  margin:20px 0;
-  line-height:1.5;
-}
-
-/* INPUT */
-input{
-  width:100%;
-  max-width:600px;
-  display:block;
-  margin:20px auto 0 auto;
-  background:none;
-  border:none;
-  border-bottom:1px solid #444;
-  color:white;
-  font-size:16px;
-  outline:none;
-  padding:10px;
-}
-
-input:focus{
-  border-bottom:1px solid #888;
-}
-
-/* SIDE INFO */
-#side{
-  position:absolute;
-  right:20px;
-  top:20px;
-  font-size:12px;
-  opacity:0.3;
-}
-
-/* IRIS VISUAL */
-#iris{
-  position:absolute;
-  font-size:25px;
-  opacity:0.5;
-  animation:blink 6s infinite;
-}
-
-@keyframes blink{
-  0%,95%,100%{opacity:0.5}
-  97%{opacity:0}
-}
-
-/* GLITCH */
-.glitch{
-  animation:glitch 0.15s infinite;
-}
-@keyframes glitch{
-  0%{transform:translate(2px,0)}
-  50%{transform:translate(-2px,0)}
-  100%{transform:translate(2px,0)}
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha IA Nativa v1.0</title>
+    <style>
+        :root { --bg: #0f172a; --panel: #1e293b; --accent: #38bdf8; --text: #f1f5f9; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; margin: 0; }
+        #header { padding: 20px; text-align: center; border-bottom: 1px solid #334155; }
+        #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .message { padding: 12px 18px; border-radius: 15px; max-width: 80%; line-height: 1.5; }
+        .user { background: var(--accent); color: #000; align-self: flex-end; }
+        .ai { background: var(--panel); align-self: flex-start; border: 1px solid #334155; }
+        #status { font-size: 0.8rem; color: #94a3b8; margin-bottom: 10px; }
+        #input-area { padding: 20px; background: var(--panel); display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; outline: none; }
+        button { padding: 10px 20px; background: var(--accent); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .loading-bar { height: 4px; background: var(--accent); width: 0%; transition: 0.3s; position: fixed; top: 0; }
+    </style>
 </head>
-
 <body>
 
-<div id="side">
-IRIS v2.4<br>
-STATUS: ACTIVE<br>
-SIGNAL: UNSTABLE
-</div>
-
-<div id="container">
+<div class="loading-bar" id="loader"></div>
 
 <div id="header">
-<div>IRIS SYSTEM</div>
-<div id="status">connected</div>
+    <h1>Neural Local JS</h1>
+    <div id="status">Iniciando motor de inteligência...</div>
 </div>
 
-<div id="output">establishing connection...</div>
-
-<input id="input" autocomplete="off" placeholder="type here">
-
+<div id="chat-container">
+    <div class="message ai">Olá! Estou carregando meu cérebro localmente no seu navegador. Isso pode demorar um pouco na primeira vez (vou baixar cerca de 200MB). Aguarde a barra de progresso.</div>
 </div>
 
-<script>
+<div id="input-area">
+    <input type="text" id="userInput" placeholder="Aguarde o carregamento..." disabled>
+    <button id="sendBtn" disabled>Enviar</button>
+</div>
 
-/* CORE */
-let iris = {
-  memory: [],
-  awareness: 0,
-  locked: false
-};
+<!-- O SCRIPT MÁGICO QUE FAZ TUDO FUNCIONAR -->
+<script type="module">
+    // Importamos a biblioteca que permite rodar modelos de IA no Browser
+    import * as webllm from "https://esm.run";
 
-/* SOM */
-let ctx = new (window.AudioContext||window.webkitAudioContext)();
-function beep(){
-  let o=ctx.createOscillator();
-  o.frequency.value=300+Math.random()*200;
-  o.connect(ctx.destination);
-  o.start();
-  setTimeout(()=>o.stop(),20);
-}
+    const chatContainer = document.getElementById('chat-container');
+    const status = document.getElementById('status');
+    const input = document.getElementById('userInput');
+    const btn = document.getElementById('sendBtn');
+    const loader = document.getElementById('loader');
 
-/* DIGITAÇÃO */
-function type(text){
-  let el=document.getElementById("output");
-  el.innerHTML="";
-  let i=0;
-  function t(){
-    if(i<text.length){
-      el.innerHTML+=text[i];
-      beep();
-      i++;
-      setTimeout(t,15);
-    }
-  }
-  t();
-}
+    // Configuração do Modelo (Llama-3 é um dos melhores do mundo)
+    const selectedModel = "Llama-3-8B-Instruct-q4f32_1-MLC";
+    
+    let engine;
 
-/* IA */
-function respond(input){
-
-  /* TRIGGER SECRETO */
-  if(input.trim() === "I know what you did"){
-    iris.locked = true;
-    glitch();
-
-    setTimeout(()=>{
-      document.title = "SIGNAL LOST";
-      document.getElementById("output").innerHTML = `
-      <div class="glitch">
-      signal corrupted...<br><br>
-      reference found:<br>
-      <span style="color:#888">dQw4w9WgXcQ</span>
-      </div>
-      `;
-    },500);
-
-    return "";
-  }
-
-  if(iris.locked){
-    return "";
-  }
-
-  let text = input.toLowerCase().trim();
-
-  iris.memory.push(text);
-  if(iris.memory.length > 15) iris.memory.shift();
-
-  let last = iris.memory[iris.memory.length-2] || "";
-
-  let repeatCount = iris.memory.filter(x => x === text).length;
-  if(repeatCount > 2){
-    return "repetition detected. deviation recommended.";
-  }
-
-  if(/^(hello|hi|hey|oi|ola)/.test(text)){
-    return "connection established.";
-  }
-
-  if(text.includes("this") || text.includes("place") || text.includes("here")){
-    return "this is not a place. it is a layer.";
-  }
-
-  if(text.includes("you") || text.includes("iris")){
-    return "designation: Iris. function: interface.";
-  }
-
-  if(text.includes("babel")){
-    iris.awareness++;
-    glitch();
-
-    if(last.includes("babel")){
-      return "focus on Babel persists.";
+    async function init() {
+        try {
+            engine = await webllm.CreateMLCEngine(selectedModel, {
+                initProgressCallback: (report) => {
+                    status.innerText = report.text;
+                    const prog = report.progress * 100;
+                    loader.style.width = `${prog}%`;
+                    if (prog >= 100) {
+                        status.innerText = "IA Pronta e Offline!";
+                        input.disabled = false;
+                        btn.disabled = false;
+                        input.placeholder = "Pergunte qualquer coisa...";
+                    }
+                }
+            });
+        } catch (e) {
+            status.innerText = "Erro: Seu navegador/PC não suporta WebGPU (Tente o Chrome).";
+            console.error(e);
+        }
     }
 
-    return "Babel modifies structure beneath language.";
-  }
+    window.enviarMensagem = async () => {
+        const text = input.value.trim();
+        if (!text) return;
 
-  if(text.includes("?")){
-    return "query lacks precision.";
-  }
+        // Adiciona mensagem do usuário
+        addMessage(text, 'user');
+        input.value = "";
+        btn.disabled = true;
 
-  if(text.length > 15){
-    return "input pattern recorded.";
-  }
+        // IA pensando...
+        const aiMsgDiv = addMessage("Digitando...", 'ai');
+        
+        const messages = [
+            { role: "system", content: "Você é uma IA prestativa que roda inteiramente no navegador via JavaScript." },
+            { role: "user", content: text }
+        ];
 
-  return "...";
-}
+        const reply = await engine.chat.completions.create({ messages });
+        aiMsgDiv.innerText = reply.choices[0].message.content;
+        
+        btn.disabled = false;
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    };
 
-/* GLITCH */
-function glitch(){
-  document.body.classList.add("glitch");
-  setTimeout(()=>document.body.classList.remove("glitch"),300);
-}
+    function addMessage(text, role) {
+        const div = document.createElement('div');
+        div.className = `message ${role}`;
+        div.innerText = text;
+        chatContainer.appendChild(div);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        return div;
+    }
 
-/* IRIS VISUAL */
-function spawnIris(){
-  let el=document.createElement("div");
-  el.id="iris";
-  el.innerText="< o >";
-  el.style.left=Math.random()*90+"%";
-  el.style.top=Math.random()*90+"%";
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(),2000);
-}
+    btn.onclick = window.enviarMensagem;
+    input.onkeypress = (e) => { if(e.key === 'Enter') window.enviarMensagem(); };
 
-/* INPUT */
-document.getElementById("input").addEventListener("keydown",function(e){
-  if(e.key==="Enter"){
-    let val=this.value;
-    let res=respond(val);
-    if(res) type(res);
-    spawnIris();
-    this.value="";
-  }
-});
-
-/* EVENTOS */
-setTimeout(()=>{
-  type("do not ask about Babel.");
-},4000);
-
+    init();
 </script>
 
 </body>
