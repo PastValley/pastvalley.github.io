@@ -4,135 +4,82 @@
 <meta charset="UTF-8">
 <title>engine</title>
 <style>
-body { margin:0; background:black; overflow:hidden; }
-canvas { display:block; }
+body { margin:0; background:black; }
+canvas {
+    width: 100vw;
+    height: 100vh;
+    display:block;
+}
 </style>
 </head>
 <body>
 
-<canvas id="game"></canvas>
+<canvas id="c"></canvas>
 
 <script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+const c = document.getElementById("c");
+const ctx = c.getContext("2d");
 
-// RESOLUÇÃO CONTROLADA (IMPORTANTE PRA MOBILE)
-canvas.width = 320;
-canvas.height = 200;
-canvas.style.width = "100vw";
-canvas.style.height = "100vh";
+// resolução baixa = estabilidade
+c.width = 240;
+c.height = 160;
 
-// MAPA
+// mapa
 const map = [
-[1,1,1,1,1,1,1,1],
-[1,0,0,0,0,0,0,1],
-[1,0,1,0,1,0,0,1],
-[1,0,1,0,1,0,0,1],
-[1,0,0,0,0,0,2,1],
-[1,1,1,1,1,1,1,1],
+[1,1,1,1,1],
+[1,0,0,0,1],
+[1,0,1,0,1],
+[1,0,0,0,1],
+[1,1,1,1,1]
 ];
 
-// PLAYER
 let px = 2.5;
 let py = 2.5;
 let angle = 0;
 
 const FOV = Math.PI / 3;
 
-// INPUT
-let keys = {};
-window.addEventListener("keydown", e => keys[e.key]=true);
-window.addEventListener("keyup", e => keys[e.key]=false);
+// controles simples (mobile-friendly)
+window.onclick = () => {
+    px += Math.cos(angle)*0.2;
+    py += Math.sin(angle)*0.2;
+};
 
-// COLISÃO
-function isWall(x,y){
-    return map[Math.floor(y)]?.[Math.floor(x)] === 1;
-}
+// loop
+function loop(){
 
-// MOVIMENTO
-function update() {
+    // fundo
+    ctx.fillStyle = "#111";
+    ctx.fillRect(0,0,c.width,c.height);
 
-    let speed = 0.05;
+    for(let i=0;i<c.width;i++){
 
-    let nx = px;
-    let ny = py;
+        let rayAngle = angle - FOV/2 + (i/c.width)*FOV;
 
-    if(keys["ArrowUp"]) {
-        nx += Math.cos(angle)*speed;
-        ny += Math.sin(angle)*speed;
-    }
+        let dist = 0;
+        let hit = false;
 
-    if(keys["ArrowDown"]) {
-        nx -= Math.cos(angle)*speed;
-        ny -= Math.sin(angle)*speed;
-    }
+        while(!hit && dist < 10){
+            let x = px + Math.cos(rayAngle)*dist;
+            let y = py + Math.sin(rayAngle)*dist;
 
-    // colisão real
-    if(!isWall(nx, py)) px = nx;
-    if(!isWall(px, ny)) py = ny;
+            if(map[Math.floor(y)][Math.floor(x)] === 1){
+                hit = true;
+            }
 
-    if(keys["ArrowLeft"]) angle -= 0.05;
-    if(keys["ArrowRight"]) angle += 0.05;
-}
-
-// RAYCAST
-function castRay(rayAngle) {
-    let dist = 0;
-
-    while(dist < 20) {
-
-        let x = px + Math.cos(rayAngle)*dist;
-        let y = py + Math.sin(rayAngle)*dist;
-
-        if(isWall(x,y)) {
-            return dist;
+            dist += 0.05;
         }
 
-        dist += 0.02;
-    }
+        let wall = c.height / dist;
 
-    return 20;
-}
-
-// RENDER
-function render() {
-
-    // céu
-    ctx.fillStyle = "#111";
-    ctx.fillRect(0,0,canvas.width,canvas.height/2);
-
-    // chão
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
-
-    for(let x=0; x<canvas.width; x++) {
-
-        let rayAngle = (angle - FOV/2) + (x/canvas.width)*FOV;
-        let dist = castRay(rayAngle);
-
-        // evita dist=0
-        dist = Math.max(dist, 0.0001);
-
-        let wallHeight = canvas.height / dist;
-
-        let shade = 255 - dist*20;
-        shade = Math.max(shade, 20);
+        let shade = 255 - dist*30;
+        if(shade < 0) shade = 0;
 
         ctx.fillStyle = `rgb(${shade},${shade},${shade})`;
 
-        ctx.fillRect(
-            x,
-            canvas.height/2 - wallHeight/2,
-            1,
-            wallHeight
-        );
+        ctx.fillRect(i, c.height/2 - wall/2, 1, wall);
     }
-}
 
-// LOOP
-function loop() {
-    update();
-    render();
     requestAnimationFrame(loop);
 }
 
